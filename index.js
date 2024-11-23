@@ -1,9 +1,28 @@
 const express = require("express");
 const axios = require("axios");
+const WebSocket = require("ws");
 require("dotenv").config();
 
 const app = express();
 const port = 3000;
+
+// WebSocket server setup
+const wss = new WebSocket.Server({ noServer: true });
+let clients = [];
+
+wss.on('connection', (ws) => {
+    clients.push(ws);
+    ws.on('close', () => {
+        clients = clients.filter(client => client !== ws);
+    });
+});
+
+// Send message to all connected WebSocket clients
+function sendToClients(message) {
+    clients.forEach(client => {
+        client.send(message);
+    });
+}
 
 app.use(express.json());
 
@@ -20,6 +39,7 @@ app.post("/gsi", async (req, res) => {
         await sendTelegramMessage(message);
 
         console.log(`Message sent: ${message}`);
+        sendToClients(`New message: ${message}`); // Send log to clients
         res.status(200).send("Data processed");
     } catch (error) {
         console.error("Error processing data:", error.message);
@@ -44,6 +64,11 @@ async function sendTelegramMessage(message) {
         console.error("Failed to send message to Telegram:", error.message);
     }
 }
+
+// Serve the logs page
+app.get("/logs", (req, res) => {
+    res.sendFile(__dirname + "/logs.html");
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
