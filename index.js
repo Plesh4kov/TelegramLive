@@ -11,12 +11,16 @@ app.post("/gsi", async (req, res) => {
     try {
         const data = req.body;
 
+        // Логирование полученных данных
+        console.log("Received data: ", data);
+
         const mapName = data.map?.name || "Unknown";
         const scoreCT = data.map?.team_ct?.score || 0;
         const scoreT = data.map?.team_t?.score || 0;
 
         const message = `Map: ${mapName}\nCT: ${scoreCT} - T: ${scoreT}`;
 
+        // Отправка сообщения в Telegram
         await sendTelegramMessage(message);
 
         console.log(`Message sent: ${message}`);
