@@ -1,8 +1,8 @@
 const express = require("express");
 const axios = require("axios");
 const WebSocket = require("ws");
+const fs = require("fs"); // Добавим работу с файлами
 require("dotenv").config();
-const path = require('path');
 
 const app = express();
 const port = 3000;
@@ -27,7 +27,6 @@ function sendToClients(message) {
 
 app.use(express.json());
 
-// Endpoint to receive GSI data
 app.post("/gsi", async (req, res) => {
     try {
         const data = req.body;
@@ -38,14 +37,13 @@ app.post("/gsi", async (req, res) => {
 
         const message = `Map: ${mapName}\nCT: ${scoreCT} - T: ${scoreT}`;
 
-        // Log the incoming data and send it to WebSocket clients
-        console.log(`Received GSI data: ${message}`);
-        sendToClients(`New message: ${message}`);
+        // Логируем сообщение в файл
+        fs.appendFileSync('logs.txt', `${new Date().toISOString()} - ${message}\n`);
 
-        // Send the message to Telegram
         await sendTelegramMessage(message);
 
-        console.log(`Message sent to Telegram: ${message}`);
+        console.log(`Message sent: ${message}`);
+        sendToClients(`New message: ${message}`); // Send log to clients
         res.status(200).send("Data processed");
     } catch (error) {
         console.error("Error processing data:", error.message);
@@ -53,7 +51,6 @@ app.post("/gsi", async (req, res) => {
     }
 });
 
-// Send Telegram message
 async function sendTelegramMessage(message) {
     const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -74,16 +71,21 @@ async function sendTelegramMessage(message) {
 
 // Serve the logs page
 app.get("/logs", (req, res) => {
-    res.sendFile(path.join(__dirname, "logs.html"));
-});
-
-// WebSocket server upgrade handler
-app.server = app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-
-app.server.on("upgrade", (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request);
+    fs.readFile('logs.txt', 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send("Error reading logs");
+        }
+        res.send(`
+            <html>
+                <body>
+                    <h1>Live Logs</h1>
+                    <pre>${data}</pre>
+                </body>
+            </html>
+        `);
     });
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
