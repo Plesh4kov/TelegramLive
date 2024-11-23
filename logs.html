@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logs</title>
+    <title>GSI Logs</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,17 +21,17 @@
     </style>
 </head>
 <body>
-    <h1>Live Logs</h1>
+    <h1>GSI Logs</h1>
     <div id="log-container"></div>
 
     <script>
         const logContainer = document.getElementById("log-container");
-        const socket = new WebSocket('ws://localhost:3000'); // Adjust URL to match your production URL if needed
+        const socket = new WebSocket('ws://localhost:3000'); // Замените на свой URL для продакшн
 
         socket.onmessage = function(event) {
             const logMessage = event.data;
-            logContainer.textContent += logMessage + "\n"; // Add new log to container
-            logContainer.scrollTop = logContainer.scrollHeight; // Auto scroll to bottom
+            logContainer.textContent += logMessage + "\n"; // Добавляем новый лог в контейнер
+            logContainer.scrollTop = logContainer.scrollHeight; // Автопрокрутка в конец
         };
     </script>
 </body>
