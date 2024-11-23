@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #log-container {
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 80vh;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Logs</h1>
+    <div id="log-container"></div>
+
+    <script>
+        const logContainer = document.getElementById("log-container");
+        const socket = new WebSocket('ws://localhost:3000'); // Adjust URL to match your production URL if needed
+
+        socket.onmessage = function(event) {
+            const logMessage = event.data;
+            logContainer.textContent += logMessage + "\n"; // Add new log to container
+            logContainer.scrollTop = logContainer.scrollHeight; // Auto scroll to bottom
+        };
+    </script>
+</body>
+</html>
